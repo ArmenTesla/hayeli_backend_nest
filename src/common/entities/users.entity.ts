@@ -4,15 +4,13 @@ import { PlayerStatsEntity } from './player-stats.entity';
 @Entity('users')
 export class UserEntity {
      @OneToOne(() => PlayerStatsEntity, (stats) => stats.user)
-stats!: PlayerStatsEntity;
+  stats!: PlayerStatsEntity;
   @PrimaryGeneratedColumn()
   id!: number; // Добавляем !
   
-  @Index({ unique: true })
   @Column({ unique: true, length: 150 })
   username!: string;
 
-  @Index({ unique: true })
   @Column({ unique: true, length: 255 })
   email!: string;
 
