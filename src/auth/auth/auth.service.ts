@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from '@nestjs-modules/mailer';
-import { OAuth2Client } from 'google-auth-library'; // Импортируем клиент Google
+import { OAuth2Client } from 'google-auth-library';
 
 import { UserEntity } from '../../common/entities/users.entity';
 import { PlayerStatsEntity } from '../../common/entities/player-stats.entity';
@@ -25,7 +25,6 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
   ) {
-    // Инициализируем клиент Google с твоим Web Client ID
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   }
 
@@ -39,12 +38,12 @@ export class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
-        stats: user.stats,
+        stats: user.stats || null, // Предотвращаем null error
       },
     };
   }
 
-  // --- РЕГИСТРАЦИЯ ---
+  // --- РЕГИСТРАЦИЯ (ИСПРАВЛЕНА) ---
   async signUp(registerDto: RegisterDto) {
     const { username, email, password } = registerDto;
     const existingUser = await this.userRepository.findOne({ where: [{ username }, { email }] });
@@ -54,10 +53,24 @@ export class AuthService {
     const user = this.userRepository.create({ username, email, password: hashedPassword });
     const savedUser = await this.userRepository.save(user);
 
+    // Создаем статистику
     const stats = this.statsRepository.create({ user: savedUser });
-    await this.statsRepository.save(stats);
+    const savedStats = await this.statsRepository.save(stats);
+    savedUser.stats = savedStats;
 
-    return { success: true, message: 'Registration successful' };
+    // Пытаемся отправить приветственное письмо (не блокируем регистрацию)
+    try {
+      await this.mailerService.sendMail({
+        to: savedUser.email,
+        subject: 'Welcome to Hayeli!',
+        html: `<h3>Welcome, ${username}!</h3><p>Success registration.</p>`,
+      });
+    } catch (error: any) {
+      console.error('Welcome email failed:', error.message);
+    }
+
+    // Возвращаем токены, чтобы Flutter мог сделать автоматический вход
+    return this.generateTokens(savedUser);
   }
 
   // --- ВХОД (ОБЫЧНЫЙ) ---
@@ -70,7 +83,6 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
     
-    // Если у пользователя нет пароля (заходил только через Google), не пускаем через обычную форму
     if (!user.password) {
         throw new UnauthorizedException('Please login with Google');
     }
@@ -81,12 +93,11 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
-  // --- GOOGLE LOGIN (ИСПРАВЛЕННЫЙ) ---
+  // --- GOOGLE LOGIN ---
   async googleLogin(idToken: string) {
     if (!idToken) throw new BadRequestException('No token provided');
 
     try {
-      // 1. Верифицируем токен через Google API
       const ticket = await this.googleClient.verifyIdToken({
         idToken: idToken,
         audience: process.env.GOOGLE_CLIENT_ID,
@@ -95,36 +106,31 @@ export class AuthService {
       const payload = ticket.getPayload();
       if (!payload) throw new UnauthorizedException('Invalid Google token');
 
-      const { email, sub: googleId, name } = payload;
+      const { email, sub: googleId } = payload;
 
-      // 2. Ищем пользователя по email
       let user = await this.userRepository.findOne({ 
         where: { email }, 
         relations: ['stats'] 
       });
 
-      // 3. Если пользователя нет — создаем
       if (!user) {
         const username = `${email.split('@')[0]}_${Math.floor(Math.random() * 1000)}`;
         user = this.userRepository.create({
           email,
           username,
           googleId,
-          password: '', // Пароль пустой для Google-юзеров
+          password: '', 
           isActive: true,
         });
         user = await this.userRepository.save(user);
 
-        // Создаем пустую статистику
         const stats = this.statsRepository.create({ user });
         user.stats = await this.statsRepository.save(stats);
       } else if (!user.googleId) {
-        // Если юзер был, но зашел через Google впервые — привязываем ID
         user.googleId = googleId;
         await this.userRepository.save(user);
       }
 
-      // 4. Возвращаем наши JWT токены
       return this.generateTokens(user);
 
     } catch (error) {
@@ -133,21 +139,26 @@ export class AuthService {
     }
   }
 
-  // --- ЗАБЫЛИ ПАРОЛЬ (БЕЗ ИЗМЕНЕНИЙ) ---
+  // --- ЗАБЫЛИ ПАРОЛЬ ---
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     const user = await this.userRepository.findOne({ where: { email: forgotPasswordDto.email } });
-    if (!user) return { message: 'Code sent if email exists' };
+    if (!user) return { success: true, message: 'Code sent if email exists' };
 
     const token = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetPasswordToken = token;
     user.resetPasswordExpires = new Date(Date.now() + 3600000); 
     await this.userRepository.save(user);
 
-    await this.mailerService.sendMail({
-      to: user.email,
-      subject: 'Reset Code | Hayeli',
-      html: `<h3>Your code: ${token}</h3>`,
-    });
+    try {
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Reset Code | Hayeli',
+        html: `<h3>Your code: ${token}</h3>`,
+      });
+    } catch (error: any) {
+      console.error('Reset email failed:', error.message);
+      throw new BadRequestException('Failed to send email. Please try later.');
+    }
 
     return { success: true, message: 'Код отправлен' };
   }
