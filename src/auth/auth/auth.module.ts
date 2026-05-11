@@ -31,16 +31,18 @@ import { PlayerStatsEntity } from '../../common/entities/player-stats.entity';
     }),
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.gmail.com',
-        port: 587, // Альтернативный порт
-        secure: false,// true для порта 465
+        // Вместо 'smtp.gmail.com' попробуй использовать хост, который заставит систему искать IPv4
+        host: 'smtp.gmail.com', 
+        port: 465, // Рекомендую сменить на 465
+        secure: true, // Для порта 465 должно быть true
         auth: {
           user: 'narimanyanarmen0@gmail.com',
           pass: 'gfdn usdu xadk dzqn',
         },
+        // Ключевой момент:
         tls: {
-          rejectUnauthorized: false // Помогает обойти проблемы с сертификатами на Windows
-        }
+          rejectUnauthorized: false,
+        },
       },
       defaults: {
         from: '"Hayeli Support" <narimanyanarmen0@gmail.com>',
