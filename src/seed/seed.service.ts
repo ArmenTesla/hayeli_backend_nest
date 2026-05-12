@@ -48,7 +48,10 @@ export class SeedService implements OnModuleInit {
   private async importFromJson() {
     const filePath = join(process.cwd(), 'data.json');
     if (!existsSync(filePath)) {
-      this.logger.warn(`Seed file not found at ${filePath}. Skipping seed.`);
+      this.logger.warn(
+        `Seed file not found at ${filePath}. ` +
+        `Skipping seed. If this is production, ensure data.json is included in the Docker image.`,
+      );
       return;
     }
 

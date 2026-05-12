@@ -1,0 +1,19 @@
+[
+  {
+    "gameName": "Test Category",
+    "gameImage": "test.jpg",
+    "questions": [
+      {
+        "question": "Does it work?",
+        "answer1": "Yes",
+        "answer2": "No",
+        "answer3": "Maybe",
+        "answer4": "I don't know",
+        "status": "easy",
+        "correctAnswer": "1",
+        "explanation": "Test check",
+        "attachment": ""
+      }
+    ]
+  }
+]

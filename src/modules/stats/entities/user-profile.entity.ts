@@ -21,6 +21,6 @@ export class UserProfileEntity {
   @Column({ type: 'int', default: 1 })
   step!: number;
 
-  @Column({ type: 'simple-json', default: '[]' })
-  skipped!: number[];
+  @Column({ type: 'simple-json', nullable: true })
+  skipped: number[] = [];
 }
