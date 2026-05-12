@@ -4,6 +4,17 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth/auth.module'; // Путь согласно твоему скрину
+import { CategoriesModule } from './modules/categories/categories.module';
+import { QuestionsModule } from './modules/questions/questions.module';
+import { GameModule } from './modules/game/game.module';
+import { SeedModule } from './seed/seed.module';
+import { CategoryEntity } from './modules/categories/entities/category.entity';
+import { QuestionEntity } from './modules/game/entities/question.entity';
+import { UserProfileEntity } from './modules/stats/entities/user-profile.entity';
+import { UserProgressEntity } from './modules/stats/entities/user-progress.entity';
+import { LevelConfigEntity } from './modules/game/entities/level-config.entity';
+import { UserEntity } from './common/entities/users.entity';
+import { PlayerStatsEntity } from './common/entities/player-stats.entity';
 
 @Module({
   imports: [
@@ -24,14 +35,27 @@ import { AuthModule } from './auth/auth/auth.module'; // Путь согласн
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      autoLoadEntities: true, // Самое важное: само подтянет UserEntity
-      synchronize: true,     // Авто-создание таблиц
+      entities: [
+        UserEntity,
+        PlayerStatsEntity,
+        CategoryEntity,
+        QuestionEntity,
+        UserProfileEntity,
+        UserProgressEntity,
+        LevelConfigEntity,
+      ],
+      autoLoadEntities: true,
+      synchronize: true,
       logging: true,
       logger: 'advanced-console',
     }),
 
     // 3. Твой модуль авторизации
     AuthModule,
+    CategoriesModule,
+    QuestionsModule,
+    GameModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,10 +1,23 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index, OneToOne, OneToMany } from 'typeorm';
 import { PlayerStatsEntity } from './player-stats.entity';
+import { UserProfileEntity } from '../../modules/stats/entities/user-profile.entity';
+import { UserProgressEntity } from '../../modules/stats/entities/user-progress.entity';
 
 @Entity('users')
 export class UserEntity {
-     @OneToOne(() => PlayerStatsEntity, (stats) => stats.user)
+  @OneToOne(() => PlayerStatsEntity, (stats) => stats.user)
   stats!: PlayerStatsEntity;
+
+  @OneToMany(() => UserProfileEntity, (profile) => profile.user, {
+    cascade: ['insert', 'update'],
+  })
+  profiles!: UserProfileEntity[];
+
+  @OneToMany(() => UserProgressEntity, (progress) => progress.user, {
+    cascade: ['insert', 'update'],
+  })
+  progress!: UserProgressEntity[];
+
   @PrimaryGeneratedColumn()
   id!: number; // Добавляем !
   
