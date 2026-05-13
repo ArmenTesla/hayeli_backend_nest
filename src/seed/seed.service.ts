@@ -30,21 +30,14 @@ export class SeedService implements OnModuleInit {
   }
 
   private async importFromJson() {
-    const filePath = join(process.cwd(), 'data.json');
-    if (!existsSync(filePath)) {
-      this.logger.warn(`Seed file not found at ${filePath}. Skipping seed.`);
-      return;
-    }
+  const languages = ['am', 'ru', 'en'];
+  
+  for (const lang of languages) {
+    const filePath = join(process.cwd(), `data_${lang}.json`);
+    if (!existsSync(filePath)) continue;
 
     const raw = readFileSync(filePath, 'utf8');
-    let payload: any;
-
-    try {
-      payload = JSON.parse(raw);
-    } catch (error) {
-      this.logger.error('Failed to parse data.json', error as Error);
-      return;
-    }
+    const payload = JSON.parse(raw);
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -52,71 +45,44 @@ export class SeedService implements OnModuleInit {
 
     try {
       for (const item of payload) {
-        // У тебя структура: { "hay_es": { "category_name": "...", "questions": [...] } }
-        const keys = Object.keys(item);
-        const categoryKey = keys[0];
-        const categoryData = item[categoryKey];
+        const categoryData = Object.values(item)[0] as any;
 
-        if (!categoryData || !categoryData.category_name) {
-          this.logger.warn(`Skipping invalid category item.`);
-          continue;
-        }
-
-        this.logger.log(`Importing category: ${categoryData.category_name}`);
-
-        // 1. Вставляем категорию через QueryBuilder
-        // Используем 'as any' для гибкости названий полей (gameName/game_name)
+        // Вставляем категорию с указанием языка
         const categoryResult = await queryRunner.manager
           .createQueryBuilder()
           .insert()
           .into(CategoryEntity)
           .values({
             gameName: categoryData.category_name,
-            gameImage: categoryData.game_image || 'assets/images/categories/hay_es.png',
+            gameImage: categoryData.game_image,
+            language: lang, // <--- ВАЖНО: сохраняем язык
           } as any)
           .execute();
 
         const categoryId = categoryResult.identifiers[0].id;
 
-        // 2. Вставляем вопросы
-        for (const [index, q] of categoryData.questions.entries()) {
-          // Вытаскиваем только текст из массива объектов ответов
-          const answerTexts = q.answers.map((a: any) => a.text || '');
-          
-          // Находим индекс правильного ответа (isCorrect: true)
-          const correctIdx = q.answers.findIndex((a: any) => a.isCorrect === true);
-          // Если не нашли, ставим по умолчанию "1" (MySQL не примет NaN или пустую строку)
-          const finalCorrectAnswer = correctIdx !== -1 ? (correctIdx + 1).toString() : "1";
-
+        for (const q of categoryData.questions) {
           await queryRunner.manager
             .createQueryBuilder()
             .insert()
             .into(QuestionEntity)
             .values({
-              questionIndex: index + 1,
               question: q.question,
-              answer1: answerTexts[0] || '',
-              answer2: answerTexts[1] || '',
-              answer3: answerTexts[2] || '',
-              answer4: answerTexts[3] || '',
-              status: 'easy',
-              correctAnswer: finalCorrectAnswer,
-              attachment: q.info || '', // Пояснение к вопросу
+              language: lang, // <--- ВАЖНО: сохраняем язык
               mainGame: { id: categoryId },
+              // ... остальные поля как у тебя были
             } as any)
             .execute();
         }
-        
-        this.logger.log(`Successfully imported "${categoryData.category_name}" with ${categoryData.questions.length} questions.`);
       }
-
       await queryRunner.commitTransaction();
-      this.logger.log('SEED PROCESS COMPLETED SUCCESSFULLY!');
-    } catch (error) {
+      this.logger.log(`Imported ${lang} language successfully`);
+    } catch (err) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Seed FAILED. Rolling back transaction.', error);
+      this.logger.error(`Failed to import ${lang}`, err);
     } finally {
       await queryRunner.release();
     }
   }
+}
 }

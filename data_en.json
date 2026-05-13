@@ -1,0 +1,679 @@
+[
+  {
+    "game_name": "Am I Armenian?",
+    "game_image": "assets/images/categories/hay_es.png",
+    "questions": [
+        {
+          "id": 1,
+          "question": "What is the highest mountain peak of Armenia?",
+          "answers": [
+            { "text": "Ararat" },
+            { "text": "Aragats", "isCorrect": true },
+            { "text": "Sisian" },
+            { "text": "Artsakh" }
+          ],
+          "info": "Aragats is the highest peak of Armenia at 4090 meters."
+        },
+        {
+          "id": 2,
+          "question": "In what year was the city of Yerevan founded?",
+          "answers": [
+            { "text": "782 BC", "isCorrect": true },
+            { "text": "301 AD" },
+            { "text": "451 AD" },
+            { "text": "1918 AD" }
+          ],
+          "info": "Yerevan was founded in 782 BC with the construction of the Erebuni fortress."
+        },
+        {
+          "id": 3,
+          "question": "In what year was Armenia's independence declared?",
+          "answers": [
+            { "text": "1988" },
+            { "text": "1990" },
+            { "text": "1991", "isCorrect": true },
+            { "text": "1992" }
+          ],
+          "info": "Armenia's independence was declared on September 21, 1991."
+        },
+        {
+          "id": 4,
+          "question": "In what year was Christianity declared the state religion in Armenia?",
+          "answers": [
+            { "text": "405 AD" },
+            { "text": "301 AD", "isCorrect": true },
+            { "text": "451 AD" },
+            { "text": "782 BC" }
+          ],
+          "info": "Christianity was declared the state religion in Armenia in 301 AD."
+        },
+        {
+          "id": 5,
+          "question": "Who created the Armenian alphabet?",
+          "answers": [
+            { "text": "Movses Khorenatsi" },
+            { "text": "Mesrop Mashtots", "isCorrect": true },
+            { "text": "Vardan Mamikonian" },
+            { "text": "Tigran the Great" }
+          ],
+          "info": "The Armenian alphabet was created by Mesrop Mashtots in 405 AD."
+        },
+        {
+          "id": 6,
+          "question": "Under which king did Armenia reach its peak of power?",
+          "answers": [
+            { "text": "Artashes I" },
+            { "text": "Tigran the Great", "isCorrect": true },
+            { "text": "Aram the Great" },
+            { "text": "King Levon the Great" }
+          ],
+          "info": "Under Tigran the Great, Armenia stretched from the Mediterranean Sea to the Caspian Sea."
+        },
+        {
+          "id": 7,
+          "question": "Who is considered the father of Armenian historiography?",
+          "answers": [
+            { "text": "Mesrop Mashtots" },
+            { "text": "Agathangelos" },
+            { "text": "Movses Khorenatsi", "isCorrect": true },
+            { "text": "Yeghishe" }
+          ],
+          "info": "Movses Khorenatsi is considered the father of Armenian historiography."
+        },
+        {
+          "id": 8,
+          "question": "In which city was the First Republic of Armenia proclaimed?",
+          "answers": [
+            { "text": "Yerevan" },
+            { "text": "Ejmiatsin" },
+            { "text": "Alexandropol" },
+            { "text": "Tiflis", "isCorrect": true }
+          ],
+          "info": "The First Republic of Armenia was proclaimed in Tiflis on May 28, 1918."
+        },
+        {
+          "id": 9,
+          "question": "In which museum is the cuneiform inscription of Erebuni's foundation kept?",
+          "answers": [
+            { "text": "Matenadaran" },
+            { "text": "Erebuni Museum", "isCorrect": true },
+            { "text": "History Museum" },
+            { "text": "Museum of Art" }
+          ],
+          "info": "The cuneiform inscription of Erebuni's foundation is kept in the Erebuni Museum."
+        },
+        {
+          "id": 10,
+          "question": "Who was one of the great Armenian writers of the 19th century whose works greatly influenced national consciousness?",
+          "answers": [
+            { "text": "Hovhannes Tumanyan" },
+            { "text": "Avetik Isahakyan" },
+            { "text": "Raffi", "isCorrect": true },
+            { "text": "Silva Kaputikyan" }
+          ],
+          "info": "Raffi was a 19th-century Armenian writer whose historical novels greatly influenced national consciousness."
+        },
+        {
+          "id": 11,
+          "question": "Which catholicos is known for his Armenian translations and educational work?",
+          "answers": [
+            { "text": "Gregory the Illuminator" },
+            { "text": "Sahak Partev", "isCorrect": true },
+            { "text": "Nerses Shnorhali" },
+            { "text": "Yeghishe" }
+          ],
+          "info": "Sahak Partev played a major role in the spread of Armenian writing and the translation movement in the 5th century."
+        },
+        {
+          "id": 12,
+          "question": "Which battle prevented the Turkish invasion of Yerevan in 1918?",
+          "answers": [
+            { "text": "Avarayr" },
+            { "text": "Sardarapat", "isCorrect": true },
+            { "text": "Bash-Aparan" },
+            { "text": "Kars" }
+          ],
+          "info": "The Battle of Sardarapat in 1918 was decisive in ensuring Armenia's existence."
+        },
+        {
+          "id": 13,
+          "question": "Under which king was the Temple of Garni built?",
+          "answers": [
+            { "text": "Tigran the Great" },
+            { "text": "Trdat I", "isCorrect": true },
+            { "text": "Artashes I" },
+            { "text": "King Levon the Great" }
+          ],
+          "info": "The pagan Temple of Garni was built under King Trdat I."
+        },
+        {
+          "id": 14,
+          "question": "Which Armenian commander participated in the restoration of the Bagratuni kingdom?",
+          "answers": [
+            { "text": "Smbat Sparapet" },
+            { "text": "Vardan Mamikonian" },
+            { "text": "Ashot Bagratuni", "isCorrect": true },
+            { "text": "Davit Bek" }
+          ],
+          "info": "Ashot I Bagratuni was proclaimed king in 885, restoring the Armenian kingdom."
+        },
+        {
+          "id": 15,
+          "question": "What was the capital of the Armenian Kingdom of Cilicia?",
+          "answers": [
+            { "text": "Sis", "isCorrect": true },
+            { "text": "Ani" },
+            { "text": "Van" },
+            { "text": "Kars" }
+          ],
+          "info": "The capital of Cilicia was the city of Sis."
+        },
+        {
+          "id": 16,
+          "question": "Which Armenian commander led the liberation struggle in Syunik in the 18th century?",
+          "answers": [
+            { "text": "Mkhitar Sparapet" },
+            { "text": "Davit Bek", "isCorrect": true },
+            { "text": "Garegin Nzhdeh" },
+            { "text": "Momik" }
+          ],
+          "info": "Davit Bek led the liberation struggle in Syunik in the 1720s."
+        },
+        {
+          "id": 17,
+          "question": "In which city was the Treaty of Sèvres signed?",
+          "answers": [
+            { "text": "Paris" },
+            { "text": "Sèvres", "isCorrect": true },
+            { "text": "London" },
+            { "text": "Vienna" }
+          ],
+          "info": "The Treaty of Sèvres was signed in 1920 in the city of Sèvres."
+        },
+        {
+          "id": 18,
+          "question": "Who was the Prime Minister of the First Republic of Armenia?",
+          "answers": [
+            { "text": "Hrachya Acharyan" },
+            { "text": "Hamo Ohanjanyan" },
+            { "text": "Hovhannes Kajaznuni", "isCorrect": true },
+            { "text": "Aram Manukyan" }
+          ],
+          "info": "The first Prime Minister of Armenia was Hovhannes Kajaznuni."
+        },
+        {
+          "id": 19,
+          "question": "Who is the great Armenian poet called the 'Poet of All Armenians'?",
+          "answers": [
+            { "text": "Avetik Isahakyan" },
+            { "text": "Hovhannes Tumanyan", "isCorrect": true },
+            { "text": "Paruyr Sevak" },
+            { "text": "Yeghishe Charents" }
+          ],
+          "info": "Hovhannes Tumanyan is considered the Poet of All Armenians."
+        },
+        {
+          "id": 20,
+          "question": "Which organization recognized Armenia's independence in December 1991?",
+          "answers": [
+            { "text": "UN" },
+            { "text": "OSCE" },
+            { "text": "CIS", "isCorrect": true },
+            { "text": "European Union" }
+          ],
+          "info": "The CIS recognized Armenia's independence in December 1991."
+        },
+        {
+          "id": 21,
+          "question": "What was the name of the joint Soviet-Azerbaijani operation in May-June 1991 aimed at emptying Armenian villages of Artsakh?",
+          "answers": [
+            { "text": "Ring", "isCorrect": true },
+            { "text": "Comet" },
+            { "text": "Koltso" },
+            { "text": "Taron" }
+          ],
+          "info": "The operation is known as 'Ring', during which residents of Armenian villages were forcibly deported."
+        },
+        {
+          "id": 22,
+          "question": "Which international format was created in 1992 for the peaceful resolution of the Karabakh conflict?",
+          "answers": [
+            { "text": "Minsk Group", "isCorrect": true },
+            { "text": "Council of Europe" },
+            { "text": "Brussels Platform" },
+            { "text": "Prague Format" }
+          ],
+          "info": "The OSCE Minsk Group was created in 1992 as a negotiation platform."
+        },
+        {
+          "id": 23,
+          "question": "In the capital of which country was the 1994 ceasefire signed?",
+          "answers": [
+            { "text": "Moscow" },
+            { "text": "Bishkek", "isCorrect": true },
+            { "text": "Yerevan" },
+            { "text": "Tbilisi" }
+          ],
+          "info": "The ceasefire was signed in Bishkek, the capital of Kyrgyzstan."
+        },
+        {
+          "id": 24,
+          "question": "Who was the Minister of Defense of Armenia at the time of the victory in the First Artsakh War?",
+          "answers": [
+            { "text": "Vazgen Sargsyan", "isCorrect": true },
+            { "text": "Serzh Sargsyan" },
+            { "text": "Manvel Grigoryan" },
+            { "text": "Samvel Babayan" }
+          ],
+          "info": "At the time of the final victory, the Minister of Defense of Armenia was Vazgen Sargsyan."
+        },
+        {
+          "id": 25,
+          "question": "Which Armenian commander is most famous for the Battle of Martakert?",
+          "answers": [
+            { "text": "Vazgen Sargsyan" },
+            { "text": "Samvel Babayan", "isCorrect": true },
+            { "text": "Manvel Grigoryan" },
+            { "text": "Arkady Ter-Tadevosyan" }
+          ],
+          "info": "In the Battle of Martakert, the Armenian forces were commanded by Samvel Babayan."
+        },
+        {
+          "id": 26,
+          "question": "In what year and where was Monte Melkonian killed?",
+          "answers": [
+            { "text": "1992, Martakert" },
+            { "text": "1993, Aghdam" },
+            { "text": "1993, Martuni", "isCorrect": true },
+            { "text": "1994, Shushi" }
+          ],
+          "info": "Monte Melkonian was killed on June 12, 1993, in the Martuni region."
+        },
+        {
+          "id": 27,
+          "question": "Which military commander led the operation to liberate Shushi?",
+          "answers": [
+            { "text": "Movses Gorgisyan" },
+            { "text": "Monte Melkonian" },
+            { "text": "Arkady Ter-Tadevosyan", "isCorrect": true },
+            { "text": "Samvel Babayan" }
+          ],
+          "info": "The liberation of Shushi was led by Arkady Ter-Tadevosyan (Komandos)."
+        },
+        {
+          "id": 28,
+          "question": "What was the code name for the Shushi liberation operation?",
+          "answers": [
+            { "text": "Dove" },
+            { "text": "Wedding in the Mountains", "isCorrect": true },
+            { "text": "Freedom" },
+            { "text": "Artsakh" }
+          ],
+          "info": "The operation to liberate Shushi had the code name 'Wedding in the Mountains'."
+        },
+        {
+          "id": 29,
+          "question": "Which newspaper became one of the important media outlets of the Karabakh movement in Armenia?",
+          "answers": [
+            { "text": "Azg" },
+            { "text": "Literary newspaper" },
+            { "text": "Hayk", "isCorrect": true },
+            { "text": "Yerkir" }
+          ],
+          "info": "The 'Hayk' newspaper played a major role in spreading the ideas of the Artsakh movement."
+        },
+        {
+          "id": 30,
+          "question": "Who was the first president of the Nagorno-Karabakh Republic?",
+          "answers": [
+            { "text": "Bako Sahakyan" },
+            { "text": "Arkadi Ghukasyan" },
+            { "text": "Robert Kocharyan", "isCorrect": true },
+            { "text": "Arayik Harutyunyan" }
+          ],
+          "info": "Robert Kocharyan was elected the first president of the Nagorno-Karabakh Republic."
+        },
+        {
+          "id": 31,
+          "question": "Which commander was known for his 'Artsivner' (Eagles) detachment?",
+          "answers": [
+            { "text": "Vazgen Sargsyan" },
+            { "text": "Manvel Grigoryan", "isCorrect": true },
+            { "text": "Samvel Babayan" },
+            { "text": "Movses Gorgisyan" }
+          ],
+          "info": "Manvel Grigoryan commanded the 'Artsivner' detachment."
+        },
+        {
+          "id": 32,
+          "question": "What is the official date of the formation of the Artsakh Defense Army?",
+          "answers": [
+            { "text": "1990" },
+            { "text": "1991" },
+            { "text": "1992", "isCorrect": true },
+            { "text": "1993" }
+          ],
+          "info": "The Artsakh Defense Army was officially formed in 1992."
+        },
+        {
+          "id": 33,
+          "question": "In which Azerbaijani city were large military forces concentrated, which were later neutralized by the Armenian side?",
+          "answers": [
+            { "text": "Ganja" },
+            { "text": "Aghdam", "isCorrect": true },
+            { "text": "Mingechevir" },
+            { "text": "Baku" }
+          ],
+          "info": "Aghdam was the main base of Azerbaijani forces."
+        },
+        {
+          "id": 34,
+          "question": "In which Azerbaijani city were large military forces concentrated, which were later neutralized by the Armenian side?",
+          "answers": [
+            { "text": "Ganja" },
+            { "text": "Aghdam", "isCorrect": true },
+            { "text": "Mingechevir" },
+            { "text": "Baku" }
+          ],
+          "info": "Aghdam was the main base of Azerbaijani forces."
+        },
+        {
+          "id": 35,
+          "question": "In which ancient capital is King Ashot the Iron buried?",
+          "answers": [
+            { "text": "Artashat" },
+            { "text": "Ani" },
+            { "text": "Dvin", "isCorrect": true },
+            { "text": "Yerevan" }
+          ],
+          "info": "King Ashot the Iron is buried in the city of Dvin."
+        },
+        {
+          "id": 36,
+          "question": "Which is the largest province of Armenia by area?",
+          "answers": [
+            { "text": "Lori" },
+            { "text": "Aragatsotn" },
+            { "text": "Syunik", "isCorrect": true },
+            { "text": "Shirak" }
+          ],
+          "info": "Syunik province is the largest in Armenia by area."
+        },
+        {
+          "id": 37,
+          "question": "Who is considered the 'Father of Armenian natural sciences'?",
+          "answers": [
+            { "text": "Khachatur Abovyan" },
+            { "text": "Viktor Hambardzumyan" },
+            { "text": "Anania Shirakatsi", "isCorrect": true },
+            { "text": "Hovhannes Aivazovsky" }
+          ],
+          "info": "Anania Shirakatsi is considered one of the founders of Armenian natural sciences and astronomy."
+        },
+        {
+          "id": 38,
+          "question": "What is the national epic of the Armenian people?",
+          "answers": [
+            { "text": "Daredevils of Sassoun", "isCorrect": true },
+            { "text": "Vardanank" },
+            { "text": "Araratian era" },
+            { "text": "Erebuni" }
+          ],
+          "info": "The national epic of Armenia is 'Daredevils of Sassoun'."
+        },
+        {
+          "id": 39,
+          "question": "Which is the highest mountain range in Armenia?",
+          "answers": [
+            { "text": "Geghama" },
+            { "text": "Zangezur", "isCorrect": true },
+            { "text": "Aragatsotn" },
+            { "text": "Vardenis" }
+          ],
+          "info": "The Zangezur mountain range is the highest in Armenia."
+        },
+        {
+          "id": 40,
+          "question": "Which Armenian artist is a world-famous marine painter?",
+          "answers": [
+            { "text": "Martiros Saryan" },
+            { "text": "Hovhannes Aivazovsky", "isCorrect": true },
+            { "text": "Arshile Gorky" },
+            { "text": "Panos Terlemezian" }
+          ],
+          "info": "Hovhannes Aivazovsky is a world-famous marine painter."
+        },
+        {
+          "id": 41,
+          "question": "Which is the highest lake in Armenia?",
+          "answers": [
+            { "text": "Arpi" },
+            { "text": "Sevan" },
+            { "text": "Lake Kari", "isCorrect": true },
+            { "text": "Akna" }
+          ],
+          "info": "Lake Kari is the highest lake in Armenia, located in the Geghama mountains."
+        },
+        {
+          "id": 42,
+          "question": "What is the first printed Armenian book?",
+          "answers": [
+            { "text": "Bible" },
+            { "text": "Urbatagirk", "isCorrect": true },
+            { "text": "Psalms" },
+            { "text": "New Testament" }
+          ],
+          "info": "The first printed Armenian book is 'Urbatagirk', printed in Venice in 1512."
+        },
+        {
+          "id": 43,
+          "question": "Which Armenian commander led the Battle of Sardarapat?",
+          "answers": [
+            { "text": "Andranik Ozanian" },
+            { "text": "Movses Silikyan", "isCorrect": true },
+            { "text": "Garegin Nzhdeh" },
+            { "text": "Dro (Drastamat Kanayan)" }
+          ],
+          "info": "The Battle of Sardarapat was commanded by General Movses Silikyan."
+        },
+        {
+          "id": 44,
+          "question": "In what year was the first Constitution of Armenia adopted?",
+          "answers": [
+            { "text": "1990" },
+            { "text": "1995", "isCorrect": true },
+            { "text": "2005" },
+            { "text": "1991" }
+          ],
+          "info": "The first Constitution of Armenia was adopted on July 5, 1995."
+        },
+        {
+          "id": 45,
+          "question": "In which language was Grigor Narekatsi's 'Book of Lamentations' written?",
+          "answers": [
+            { "text": "Ashkharabar" },
+            { "text": "Grabar", "isCorrect": true },
+            { "text": "Root Armenian" },
+            { "text": "English" }
+          ],
+          "info": "Grigor Narekatsi's 'Book of Lamentations' was written in Grabar (Classical Armenian)."
+        },
+        {
+          "id": 46,
+          "question": "Who was the Prime Minister of the First Republic of Armenia?",
+          "answers": [
+            { "text": "Hovhannes Kajaznuni", "isCorrect": true },
+            { "text": "Aram Manukyan" },
+            { "text": "Alexander Khatisyan" },
+            { "text": "Levon Shant" }
+          ],
+          "info": "The first Prime Minister of the First Republic was Hovhannes Kajaznuni."
+        },
+        {
+          "id": 47,
+          "question": "In what year was the Yerablur pantheon founded?",
+          "answers": [
+            { "text": "1990" },
+            { "text": "1992" },
+            { "text": "1994", "isCorrect": true },
+            { "text": "1996" }
+          ],
+          "info": "Yerablur was founded in 1994 to commemorate the heroes of the First Artsakh War."
+        },
+        {
+          "id": 48,
+          "question": "What was the name of the leader of the Armenian volunteer detachments during World War I?",
+          "answers": [
+            { "text": "Garegin Nzhdeh" },
+            { "text": "Andranik Ozanian", "isCorrect": true },
+            { "text": "Simon Vratsyan" },
+            { "text": "Armenak Yekaryan" }
+          ],
+          "info": "Andranik Ozanian was the most famous commander of the Armenian volunteer movement."
+        },
+        {
+          "id": 49,
+          "question": "Who recorded and first published the 'Sasna Tsrer' epic?",
+          "answers": [
+            { "text": "Khachatur Abovyan" },
+            { "text": "Garegin Nzhdeh" },
+            { "text": "Garegin Srvandztiants", "isCorrect": true },
+            { "text": "Levon Shant" }
+          ],
+          "info": "Garegin Srvandztiants recorded and published the 'Sasna Tsrer' epic in the 19th century."
+        },
+        {
+          "id": 50,
+          "question": "In what year did the Spitak earthquake occur?",
+          "answers": [
+            { "text": "1986" },
+            { "text": "1987" },
+            { "text": "1988", "isCorrect": true },
+            { "text": "1989" }
+          ],
+          "info": "The devastating Spitak earthquake occurred on December 7, 1988."
+        },
+        {
+          "id": 51,
+          "question": "Who was the Artsakh War hero Ashot Ghulyan, known as:",
+          "answers": [
+            { "text": "Bekor", "isCorrect": true },
+            { "text": "Leon" },
+            { "text": "Komandos" },
+            { "text": "Sisak" }
+          ],
+          "info": "Ashot Ghulyan, a volunteer, was known by the name 'Bekor'."
+        },
+        {
+          "id": 52,
+          "question": "In which era was the Mother Cathedral of Ejmiatsin built?",
+          "answers": [
+            { "text": "3rd century" },
+            { "text": "4th century", "isCorrect": true },
+            { "text": "5th century" },
+            { "text": "6th century" }
+          ],
+          "info": "The Mother Cathedral of Ejmiatsin was built in the 4th century on the initiative of Gregory the Illuminator."
+        },
+        {
+          "id": 53,
+          "question": "What was the first university in medieval Armenia?",
+          "answers": [
+            { "text": "University of Gladzor", "isCorrect": true },
+            { "text": "University of Tatev" },
+            { "text": "Ejmiatsin Seminary" },
+            { "text": "Ani School" }
+          ],
+          "info": "The University of Gladzor was founded in the 13th century and is considered the first university in Armenia."
+        },
+        {
+          "id": 54,
+          "question": "What was the first university in medieval Armenia?",
+          "answers": [
+            { "text": "University of Gladzor", "isCorrect": true },
+            { "text": "University of Tatev" },
+            { "text": "Ejmiatsin Seminary" },
+            { "text": "Ani School" }
+          ],
+          "info": "The University of Gladzor was founded in the 13th century and is considered the first university in Armenia."
+        },
+        {
+          "id": 55,
+          "question": "Which Armenian monastery is included in the UNESCO World Heritage List?",
+          "answers": [
+            { "text": "Geghard" },
+            { "text": "Tatev" },
+            { "text": "Noravank" },
+            { "text": "Haghpat", "isCorrect": true }
+          ],
+          "info": "Haghpat Monastery in Lori is included in the UNESCO list."
+        },
+        {
+          "id": 56,
+          "question": "In what year was Yerevan State University founded?",
+          "answers": [
+            { "text": "1918" },
+            { "text": "1919", "isCorrect": true },
+            { "text": "1920" },
+            { "text": "1921" }
+          ],
+          "info": "YSU was founded in 1919."
+        },
+        {
+          "id": 57,
+          "question": "Who is one of the composers of the music for 'Our Father'?",
+          "answers": [
+            { "text": "Komitas", "isCorrect": true },
+            { "text": "Aram Khachaturian" },
+            { "text": "Tigran Mansurian" },
+            { "text": "Alexander Spendiaryan" }
+          ],
+          "info": "Komitas is the greatest representative of Armenian sacred music."
+        },
+        {
+          "id": 58,
+          "question": "In which year did the Armenian national football team play its first match?",
+          "answers": [
+            { "text": "1991" },
+            { "text": "1992", "isCorrect": true },
+            { "text": "1993" },
+            { "text": "1994" }
+          ],
+          "info": "The Armenian national football team played its first match in 1992."
+        },
+        {
+          "id": 59,
+          "question": "What is the order of colors of the RA state flag from top to bottom?",
+          "answers": [
+            { "text": "Red-blue-orange", "isCorrect": true },
+            { "text": "Blue-red-orange" },
+            { "text": "Orange-blue-red" },
+            { "text": "Red-orange-blue" }
+          ],
+          "info": "The RA flag from top to bottom: red, blue, orange."
+        },
+        {
+          "id": 60,
+          "question": "In which city is the Sardarapat memorial complex located?",
+          "answers": [
+            { "text": "Gyumri" },
+            { "text": "Armavir", "isCorrect": true },
+            { "text": "Vanadzor" },
+            { "text": "Yerevan" }
+          ],
+          "info": "The Sardarapat memorial is located in the Armavir province."
+        },
+        {
+          "id": 61,
+          "question": "In what year was the 'Hayastan' All-Armenian Fund founded?",
+          "answers": [
+            { "text": "1988" },
+            { "text": "1989" },
+            { "text": "1991" },
+            { "text": "1992", "isCorrect": true }
+          ],
+          "info": "The 'Hayastan' All-Armenian Fund was founded in 1992."
+        }
+    ]
+  }
+]

@@ -30,6 +30,9 @@ export class QuestionEntity {
   @Column({ name: 'correct_answer', type: 'char', length: 1 })
   correctAnswer!: string;
 
+  @Column({ type: 'varchar', length: 10, default: 'en' })
+  language!: string;
+  
   @Column({ type: 'text', nullable: true })
   explanation?: string;
 

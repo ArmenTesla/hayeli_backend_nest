@@ -1,75 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
-
-interface JsonQuestion {
-  id: number;
-  question: string;
-  answers: { text: string; isCorrect: boolean }[];
-  info: string;
-}
-
-interface JsonCategory {
-  [key: string]: {
-    category_name: string;
-    questions: JsonQuestion[];
-  };
-}
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { QuestionEntity } from './entities/question.entity';
 
 @Injectable()
 export class QuestionsService {
-  private data: JsonCategory[] = [];
+  constructor(
+    @InjectRepository(QuestionEntity)
+    private readonly questionRepository: Repository<QuestionEntity>,
+  ) {}
 
-  constructor() {
-    this.loadDataFromJson();
-  }
+  async findByCategoryAndLang(categoryName: string, lang: string, limit?: number): Promise<QuestionEntity[]> {
+    const query = this.questionRepository.createQueryBuilder('question')
+      .leftJoin('question.mainGame', 'category')
+      .where('category.game_name = :categoryName', { categoryName })
+      .andWhere('question.language = :lang', { lang })
+      .andWhere('category.language = :lang', { lang });
 
-  private loadDataFromJson() {
-    const filePath = join(process.cwd(), 'data.json');
-    if (!existsSync(filePath)) {
-      console.warn('data.json not found, questions will be empty');
-      return;
+    if (limit) {
+      // ORDER BY RAND() работает для MySQL и SQLite. Если у тебя PostgreSQL, используй RANDOM()
+      query.orderBy('RAND()').limit(limit);
+    } else {
+      query.orderBy('question.question_index', 'ASC');
     }
 
-    const raw = readFileSync(filePath, 'utf8');
-    this.data = JSON.parse(raw);
-  }
+    const questions = await query.getMany();
 
-  async findByCategoryName(categoryName: string, limit?: number) {
-    const categoryData = this.data.find(item => Object.keys(item)[0] === categoryName);
-    if (!categoryData) {
-      throw new NotFoundException(`Category ${categoryName} not found`);
+    if (!questions || questions.length === 0) {
+      throw new NotFoundException(`Questions for category "${categoryName}" in language "${lang}" not found`);
     }
 
-    let questions = categoryData[categoryName].questions;
-    
-    // Return random questions if limit is specified
-    if (limit && limit > 0 && questions.length > limit) {
-      questions = this.getRandomQuestions(questions, limit);
-    }
-
-    return questions.map((q, index) => ({
-      id: q.id,
-      questionIndex: index + 1,
-      question: q.question,
-      answer1: q.answers[0]?.text || '',
-      answer2: q.answers[1]?.text || '',
-      answer3: q.answers[2]?.text || '',
-      answer4: q.answers[3]?.text || '',
-      status: 'easy' as 'easy' | 'medium' | 'hard',
-      correctAnswer: q.answers.findIndex(a => a.isCorrect) + 1 + '',
-      explanation: q.info,
-      attachment: null,
-    }));
+    return questions;
   }
 
   async create(dto: any) {
-    // Not implemented for JSON-based approach
-    throw new Error('Create not supported with JSON data source');
-  }
-
-  private getRandomQuestions(questions: JsonQuestion[], limit: number): JsonQuestion[] {
-    const shuffled = [...questions].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, limit);
+    const newQuestion = this.questionRepository.create(dto);
+    return await this.questionRepository.save(newQuestion);
   }
 }

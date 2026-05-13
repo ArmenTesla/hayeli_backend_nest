@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, UseGuards, Query, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
@@ -12,13 +12,16 @@ export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
   @Get('questions/:categoryName')
-  @ApiOperation({ summary: 'Get all questions for a category (or random 10 if ?limit=10)' })
+  @ApiOperation({ summary: 'Get all questions for a category by language' })
   async getQuestionsByCategory(
     @Param('categoryName') categoryName: string,
+    @Headers('accept-language') lang: string,
     @Query('limit') limit?: string,
   ) {
-    const limitNum = limit ? Math.min(parseInt(limit, 10), 61) : undefined;
-    const questions = await this.questionsService.findByCategoryName(categoryName, limitNum);
+    const currentLang = lang ? lang.split(',')[0].substring(0, 2).toLowerCase() : 'en';
+    const limitNum = limit ? Math.min(parseInt(limit, 10), 100) : undefined;
+
+    const questions = await this.questionsService.findByCategoryAndLang(categoryName, currentLang, limitNum);
 
     const mapped = questions.map((question) => ({
       id: question.id,
@@ -35,15 +38,11 @@ export class QuestionsController {
       questionIndex: question.questionIndex,
     }));
 
-    if (mapped.length === 1) {
-      return { question: mapped[0] };
-    }
-
-    return { questions: mapped };
+    return mapped.length === 1 ? { question: mapped[0] } : { questions: mapped };
   }
 
   @Post('questions')
-  @ApiOperation({ summary: 'Create a new question with sequential question_index' })
+  @ApiOperation({ summary: 'Create a new question' })
   async createQuestion(@Body() createQuestionDto: CreateQuestionDto) {
     return this.questionsService.create(createQuestionDto);
   }
