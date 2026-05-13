@@ -6,25 +6,6 @@ import { QuestionEntity } from '../modules/game/entities/question.entity';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-type SeedQuestion = {
-  question: string;
-  answer1: string;
-  answer2: string;
-  answer3: string;
-  answer4: string;
-  status?: 'easy' | 'medium' | 'hard';
-  correctAnswer: string | number;
-  attachment?: string;
-};
-
-type SeedCategory = {
-  gameName?: string;
-  game_name?: string;
-  gameImage?: string;
-  game_image?: string;
-  questions: SeedQuestion[];
-};
-
 @Injectable()
 export class SeedService implements OnModuleInit {
   private readonly logger = new Logger(SeedService.name);
@@ -38,7 +19,7 @@ export class SeedService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Проверяем, есть ли уже данные, чтобы не дублировать при каждом перезапуске
+    // Проверяем наличие данных, чтобы не дублировать их при каждом перезапуске
     const count = await this.categoryRepository.count();
     if (count > 0) {
       this.logger.log('Database already seeded, skipping import.');
@@ -48,12 +29,22 @@ export class SeedService implements OnModuleInit {
     await this.importFromJson();
   }
 
- private async importFromJson() {
+  private async importFromJson() {
     const filePath = join(process.cwd(), 'data.json');
-    if (!existsSync(filePath)) return;
+    if (!existsSync(filePath)) {
+      this.logger.warn(`Seed file not found at ${filePath}. Skipping seed.`);
+      return;
+    }
 
     const raw = readFileSync(filePath, 'utf8');
-    const payload = JSON.parse(raw);
+    let payload: any;
+
+    try {
+      payload = JSON.parse(raw);
+    } catch (error) {
+      this.logger.error('Failed to parse data.json', error as Error);
+      return;
+    }
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -61,20 +52,42 @@ export class SeedService implements OnModuleInit {
 
     try {
       for (const item of payload) {
-        // Вставляем категорию напрямую через QueryBuilder, чтобы обойти капризы Entity
+        // У тебя структура: { "hay_es": { "category_name": "...", "questions": [...] } }
+        const keys = Object.keys(item);
+        const categoryKey = keys[0];
+        const categoryData = item[categoryKey];
+
+        if (!categoryData || !categoryData.category_name) {
+          this.logger.warn(`Skipping invalid category item.`);
+          continue;
+        }
+
+        this.logger.log(`Importing category: ${categoryData.category_name}`);
+
+        // 1. Вставляем категорию через QueryBuilder
+        // Используем 'as any' для гибкости названий полей (gameName/game_name)
         const categoryResult = await queryRunner.manager
           .createQueryBuilder()
           .insert()
           .into(CategoryEntity)
           .values({
-            gameName: item.game_name,   // Если в Entity поле gameName
-            gameImage: item.game_image, // Если в Entity поле gameImage
+            gameName: categoryData.category_name,
+            gameImage: categoryData.game_image || 'assets/images/categories/hay_es.png',
           } as any)
           .execute();
 
         const categoryId = categoryResult.identifiers[0].id;
 
-        for (const [index, q] of item.questions.entries()) {
+        // 2. Вставляем вопросы
+        for (const [index, q] of categoryData.questions.entries()) {
+          // Вытаскиваем только текст из массива объектов ответов
+          const answerTexts = q.answers.map((a: any) => a.text || '');
+          
+          // Находим индекс правильного ответа (isCorrect: true)
+          const correctIdx = q.answers.findIndex((a: any) => a.isCorrect === true);
+          // Если не нашли, ставим по умолчанию "1" (MySQL не примет NaN или пустую строку)
+          const finalCorrectAnswer = correctIdx !== -1 ? (correctIdx + 1).toString() : "1";
+
           await queryRunner.manager
             .createQueryBuilder()
             .insert()
@@ -82,24 +95,26 @@ export class SeedService implements OnModuleInit {
             .values({
               questionIndex: index + 1,
               question: q.question,
-              answer1: q.answers[0] || '',
-              answer2: q.answers[1] || '',
-              answer3: q.answers[2] || '',
-              answer4: q.answers[3] || '',
+              answer1: answerTexts[0] || '',
+              answer2: answerTexts[1] || '',
+              answer3: answerTexts[2] || '',
+              answer4: answerTexts[3] || '',
               status: 'easy',
-              correctAnswer: (q.correctIndex + 1).toString(),
-              attachment: q.info || '',
-              mainGame: { id: categoryId }, // Привязка к созданной категории
+              correctAnswer: finalCorrectAnswer,
+              attachment: q.info || '', // Пояснение к вопросу
+              mainGame: { id: categoryId },
             } as any)
             .execute();
         }
+        
+        this.logger.log(`Successfully imported "${categoryData.category_name}" with ${categoryData.questions.length} questions.`);
       }
 
       await queryRunner.commitTransaction();
-      this.logger.log('Seed SUCCESS! База наполнена.');
+      this.logger.log('SEED PROCESS COMPLETED SUCCESSFULLY!');
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Seed FAILED. Error details:', error);
+      this.logger.error('Seed FAILED. Rolling back transaction.', error);
     } finally {
       await queryRunner.release();
     }
