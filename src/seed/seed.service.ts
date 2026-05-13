@@ -29,57 +29,82 @@ export class SeedService implements OnModuleInit {
     await this.importFromJson();
   }
 
-  private async importFromJson() {
+ private async importFromJson() {
   const languages = ['am', 'ru', 'en'];
   
   for (const lang of languages) {
     const filePath = join(process.cwd(), `data_${lang}.json`);
-    if (!existsSync(filePath)) continue;
+    if (!existsSync(filePath)) {
+      this.logger.warn(`Файл не найден: ${filePath}`);
+      continue;
+    }
 
     const raw = readFileSync(filePath, 'utf8');
-    const payload = JSON.parse(raw);
+    let payload: any[];
+
+    try {
+      payload = JSON.parse(raw);
+    } catch (e) {
+      this.logger.error(`Ошибка парсинга файла ${lang}:`, e);
+      continue;
+    }
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      for (const item of payload) {
-        const categoryData = Object.values(item)[0] as any;
+      for (const categoryData of payload) {
+        // Теперь мы берем данные напрямую из объекта, так как структуры hay_es: {} больше нет
+        this.logger.log(`Импорт категории: ${categoryData.game_name} [${lang}]`);
 
-        // Вставляем категорию с указанием языка
+        // 1. Вставляем категорию
         const categoryResult = await queryRunner.manager
           .createQueryBuilder()
           .insert()
           .into(CategoryEntity)
           .values({
-            gameName: categoryData.category_name,
-            gameImage: categoryData.game_image,
-            language: lang, // <--- ВАЖНО: сохраняем язык
+            gameName: categoryData.game_name,
+            gameImage: categoryData.game_image || 'assets/images/categories/default.png',
+            language: lang,
           } as any)
           .execute();
 
         const categoryId = categoryResult.identifiers[0].id;
 
-        for (const q of categoryData.questions) {
-          await queryRunner.manager
-            .createQueryBuilder()
-            .insert()
-            .into(QuestionEntity)
-            .values({
-              question: q.question,
-              language: lang, // <--- ВАЖНО: сохраняем язык
-              mainGame: { id: categoryId },
-              // ... остальные поля как у тебя были
-            } as any)
-            .execute();
+        // 2. Вставляем вопросы этой категории
+        if (categoryData.questions && Array.isArray(categoryData.questions)) {
+          for (const [index, q] of categoryData.questions.entries()) {
+            const answerTexts = q.answers.map((a: any) => a.text || '');
+            const correctIdx = q.answers.findIndex((a: any) => a.isCorrect === true);
+            const finalCorrectAnswer = correctIdx !== -1 ? (correctIdx + 1).toString() : "1";
+
+            await queryRunner.manager
+              .createQueryBuilder()
+              .insert()
+              .into(QuestionEntity)
+              .values({
+                questionIndex: index + 1,
+                question: q.question,
+                answer1: answerTexts[0] || '',
+                answer2: answerTexts[1] || '',
+                answer3: answerTexts[2] || '',
+                answer4: answerTexts[3] || '',
+                status: 'easy',
+                correctAnswer: finalCorrectAnswer,
+                attachment: q.info || '', 
+                language: lang,
+                mainGame: { id: categoryId },
+              } as any)
+              .execute();
+          }
         }
       }
       await queryRunner.commitTransaction();
-      this.logger.log(`Imported ${lang} language successfully`);
+      this.logger.log(`✅ Язык ${lang} успешно импортирован!`);
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(`Failed to import ${lang}`, err);
+      this.logger.error(`❌ Ошибка импорта языка ${lang}:`, err);
     } finally {
       await queryRunner.release();
     }
