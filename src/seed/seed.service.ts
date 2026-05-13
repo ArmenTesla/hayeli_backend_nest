@@ -49,81 +49,79 @@ export class SeedService implements OnModuleInit {
   }
 
   private async importFromJson() {
-    const filePath = join(process.cwd(), 'data.json');
-    if (!existsSync(filePath)) {
-      this.logger.warn(
-        `Seed file not found at ${filePath}. ` +
-        `Skipping seed. Ensure data.json is in the root folder.`,
-      );
-      return;
-    }
+  const filePath = join(process.cwd(), 'data.json');
+  if (!existsSync(filePath)) {
+    this.logger.warn(`Seed file not found at ${filePath}.`);
+    return;
+  }
 
-    const raw = readFileSync(filePath, 'utf8');
-    let payload: SeedCategory[];
+  const raw = readFileSync(filePath, 'utf8');
+  let payload: any[];
 
-    try {
-      payload = JSON.parse(raw) as SeedCategory[];
-    } catch (error) {
-      this.logger.error('Failed to parse data.json', error as Error);
-      return;
-    }
+  try {
+    payload = JSON.parse(raw);
+  } catch (error) {
+    this.logger.error('Failed to parse data.json', error as Error);
+    return;
+  }
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  const queryRunner = this.dataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
 
-    try {
-      for (const categoryItem of payload) {
-        // Определяем имя и картинку, пробуя оба варианта написания (Camel и Snake)
-        const name = categoryItem.gameName || categoryItem.game_name;
-        const image = categoryItem.gameImage || categoryItem.game_image;
+  try {
+    for (const item of payload) {
+      // Так как у тебя ключ динамический (например, "hay_es"), берем первый ключ объекта
+      const categoryKey = Object.keys(item)[0];
+      const categoryData = item[categoryKey];
 
-        if (!name) {
-          this.logger.error('Category name is missing in JSON, skipping this category.');
-          continue;
-        }
-
-        // Создаем категорию. В явном виде указываем поля для БД (game_name, game_image)
-        const category = queryRunner.manager.create(CategoryEntity, {
-          game_name: name,
-          game_image: image || '',
-        } as any);
-
-        const savedCategory = await queryRunner.manager.save(category);
-
-        // Создаем вопросы для этой категории
-        const questionsToSave = categoryItem.questions.map((questionItem, index) => {
-          return queryRunner.manager.create(QuestionEntity, {
-            questionIndex: index + 1,
-            question: questionItem.question,
-            answer1: questionItem.answer1,
-            answer2: questionItem.answer2,
-            answer3: questionItem.answer3,
-            answer4: questionItem.answer4,
-            status: questionItem.status ?? 'easy',
-            correctAnswer: String(questionItem.correctAnswer),
-            attachment: questionItem.attachment,
-            mainGame: savedCategory,
-          });
-        });
-
-        // Сохраняем все вопросы пачкой для скорости
-        await queryRunner.manager.save(questionsToSave);
-
-        this.logger.log(
-          `Imported category "${name}" with ${categoryItem.questions.length} questions.`,
-        );
+      if (!categoryData || !categoryData.category_name) {
+        this.logger.error(`Invalid category data for key: ${categoryKey}`);
+        continue;
       }
 
-      await queryRunner.commitTransaction();
-      this.logger.log(`Seed import completed. Total categories: ${payload.length}`);
-    } catch (error) {
-      // Если хоть один инсерт упадет — откатываем всё, чтобы не было мусора
-      await queryRunner.rollbackTransaction();
-      this.logger.error('Seed import failed. Database rolled back.', error as Error);
-    } finally {
-      // Обязательно освобождаем соединение
-      await queryRunner.release();
+      // 1. Создаем категорию
+      const category = queryRunner.manager.create(CategoryEntity, {
+        game_name: categoryData.category_name,
+        game_image: 'assets/images/categories/hay_es.png', // Пока хардкодим, раз в JSON нет
+      } as any);
+
+      const savedCategory = await queryRunner.manager.save(category);
+
+      // 2. Создаем вопросы
+      for (let i = 0; i < categoryData.questions.length; i++) {
+        const q = categoryData.questions[i];
+
+        // Находим правильный ответ (индекс или текст)
+        const correctIndex = q.answers.findIndex(a => a.isCorrect === true);
+
+        const question = queryRunner.manager.create(QuestionEntity, {
+          questionIndex: i + 1,
+          question: q.question,
+          // Распределяем ответы из массива по полям базы
+          answer1: q.answers[0]?.text || '',
+          answer2: q.answers[1]?.text || '',
+          answer3: q.answers[2]?.text || '',
+          answer4: q.answers[3]?.text || '',
+          status: 'easy',
+          correctAnswer: (correctIndex + 1).toString(), // Сохраняем номер правильного ответа (1-4)
+          attachment: q.info || '', // Используем инфо как доп. данные
+          mainGame: savedCategory,
+        });
+
+        await queryRunner.manager.save(question);
+      }
+
+      this.logger.log(`Category "${categoryData.category_name}" imported with ${categoryData.questions.length} questions.`);
     }
+
+    await queryRunner.commitTransaction();
+    this.logger.log('Seed import completed successfully!');
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    this.logger.error('Seed import failed. Rolling back.', error as Error);
+  } finally {
+    await queryRunner.release();
   }
+}
 }
