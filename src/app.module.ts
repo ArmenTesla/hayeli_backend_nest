@@ -8,8 +8,6 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { GameModule } from './modules/game/game.module';
 import { SeedModule } from './seed/seed.module';
-import { CategoryEntity } from './modules/categories/entities/category.entity';
-import { QuestionEntity } from './modules/game/entities/question.entity';
 import { UserProfileEntity } from './modules/stats/entities/user-profile.entity';
 import { UserProgressEntity } from './modules/stats/entities/user-progress.entity';
 import { LevelConfigEntity } from './modules/game/entities/level-config.entity';
@@ -38,8 +36,6 @@ import { PlayerStatsEntity } from './common/entities/player-stats.entity';
       entities: [
         UserEntity,
         PlayerStatsEntity,
-        CategoryEntity,
-        QuestionEntity,
         UserProfileEntity,
         UserProgressEntity,
         LevelConfigEntity,

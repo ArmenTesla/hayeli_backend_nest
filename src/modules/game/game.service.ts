@@ -4,12 +4,28 @@ import { Repository } from 'typeorm';
 import { UserProfileEntity } from '../stats/entities/user-profile.entity';
 import { UserProgressEntity } from '../stats/entities/user-progress.entity';
 import { LevelConfigEntity } from './entities/level-config.entity';
-import { QuestionEntity } from '../questions/entities/question.entity';
 import { UserEntity } from '../../common/entities/users.entity';
-import { CategoryEntity } from '../categories/entities/category.entity';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+
+interface JsonQuestion {
+  id: number;
+  question: string;
+  answers: { text: string; isCorrect: boolean }[];
+  info: string;
+}
+
+interface JsonCategory {
+  [key: string]: {
+    category_name: string;
+    questions: JsonQuestion[];
+  };
+}
 
 @Injectable()
 export class GameService {
+  private data: JsonCategory[] = [];
+
   constructor(
     @InjectRepository(UserProfileEntity)
     private readonly userProfileRepository: Repository<UserProfileEntity>,
@@ -17,64 +33,83 @@ export class GameService {
     private readonly userProgressRepository: Repository<UserProgressEntity>,
     @InjectRepository(LevelConfigEntity)
     private readonly levelConfigRepository: Repository<LevelConfigEntity>,
-    @InjectRepository(QuestionEntity)
-    private readonly questionRepository: Repository<QuestionEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(CategoryEntity)
-    private readonly categoryRepository: Repository<CategoryEntity>,
-  ) {}
+  ) {
+    this.loadDataFromJson();
+  }
+
+  private loadDataFromJson() {
+    const filePath = join(process.cwd(), 'data.json');
+    if (!existsSync(filePath)) {
+      console.warn('data.json not found');
+      return;
+    }
+
+    const raw = readFileSync(filePath, 'utf8');
+    this.data = JSON.parse(raw);
+  }
+
+  private findQuestionById(questionId: number) {
+    for (const categoryData of this.data) {
+      const categoryName = Object.keys(categoryData)[0];
+      const questions = categoryData[categoryName].questions;
+      const question = questions.find(q => q.id === questionId);
+      if (question) {
+        return { question, categoryName };
+      }
+    }
+    return null;
+  }
 
   async answerQuestion(user: UserEntity, questionId: number, answerId: number) {
-    const question = await this.questionRepository.findOne({
-      where: { id: questionId },
-      relations: ['mainGame'],
-    });
-
-    if (!question) {
+    const questionData = this.findQuestionById(questionId);
+    if (!questionData) {
       throw new NotFoundException(`Question with id ${questionId} not found`);
     }
 
-    const isCorrect = String(answerId) === question.correctAnswer;
+    const { question, categoryName } = questionData;
+    const correctAnswerIndex = question.answers.findIndex(a => a.isCorrect) + 1;
+    const isCorrect = answerId === correctAnswerIndex;
 
     if (!isCorrect) {
       return {
         info: 'Պատասխանը սխալ է',
-        true: question.correctAnswer,
-        status: question.status,
+        true: correctAnswerIndex.toString(),
+        status: 'easy',
       };
     }
 
     let profile = await this.userProfileRepository.findOne({
-      where: { user: { id: user.id }, game: { id: question.id } },
+      where: { user: { id: user.id }, game_id: questionId },
     });
 
     if (!profile) {
       profile = this.userProfileRepository.create({
         user,
-        game: question,
+        game_id: questionId,
         score: 0,
         step: 1,
         skipped: [],
       });
     }
 
-    profile.score += this.getScoreIncrement(question.status);
+    profile.score += this.getScoreIncrement('easy'); // Default to easy for now
     profile.step += 1;
     await this.userProfileRepository.save(profile);
 
     let progress = await this.userProgressRepository.findOne({
-      where: { user: { id: user.id }, mainGame: { id: question.mainGame.id } },
+      where: { user: { id: user.id }, mainGameName: categoryName },
     });
 
     if (!progress) {
       progress = this.userProgressRepository.create({
         user,
-        mainGame: question.mainGame,
-        lastQuestion: question.questionIndex,
+        mainGameName: categoryName,
+        lastQuestion: question.id,
       });
     } else {
-      progress.lastQuestion = question.questionIndex;
+      progress.lastQuestion = question.id;
     }
 
     await this.userProgressRepository.save(progress);
@@ -83,7 +118,7 @@ export class GameService {
 
     return {
       info: 'Պատասխանը ճիշտ է',
-      status: question.status,
+      status: 'easy',
       score: profile.score,
       level: levelResult.level,
       totalScore: levelResult.totalScore,
@@ -104,47 +139,45 @@ export class GameService {
   }
 
   async skipQuestion(user: UserEntity, questionId: number) {
-    const question = await this.questionRepository.findOne({
-      where: { id: questionId },
-      relations: ['mainGame'],
-    });
-
-    if (!question) {
+    const questionData = this.findQuestionById(questionId);
+    if (!questionData) {
       throw new NotFoundException(`Question with id ${questionId} not found`);
     }
 
+    const { question, categoryName } = questionData;
+
     let profile = await this.userProfileRepository.findOne({
-      where: { user: { id: user.id }, game: { id: question.id } },
+      where: { user: { id: user.id }, game_id: questionId },
     });
 
     if (!profile) {
       profile = this.userProfileRepository.create({
         user,
-        game: question,
+        game_id: questionId,
         score: 0,
         step: 1,
         skipped: [],
       });
     }
 
-    if (!profile.skipped.includes(question.id)) {
-      profile.skipped = [...profile.skipped, question.id];
+    if (!profile.skipped.includes(questionId)) {
+      profile.skipped = [...profile.skipped, questionId];
     }
 
     await this.userProfileRepository.save(profile);
 
     let progress = await this.userProgressRepository.findOne({
-      where: { user: { id: user.id }, mainGame: { id: question.mainGame.id } },
+      where: { user: { id: user.id }, mainGameName: categoryName },
     });
 
     if (!progress) {
       progress = this.userProgressRepository.create({
         user,
-        mainGame: question.mainGame,
-        lastQuestion: question.questionIndex,
+        mainGameName: categoryName,
+        lastQuestion: question.id,
       });
     } else {
-      progress.lastQuestion = question.questionIndex;
+      progress.lastQuestion = question.id;
     }
 
     await this.userProgressRepository.save(progress);
@@ -152,7 +185,7 @@ export class GameService {
     return {
       info: 'Question skipped successfully',
       skipped: profile.skipped,
-      category: question.mainGame.gameName,
+      category: categoryName,
       questionId: question.id,
     };
   }
@@ -168,22 +201,20 @@ export class GameService {
   }
 
   async getCategoryTopScores(categoryName: string) {
-    const category = await this.categoryRepository.findOne({
-      where: { gameName: categoryName },
-    });
-
-    if (!category) {
+    // Since we switched to JSON, we need to get all question IDs for this category
+    const categoryData = this.data.find(item => Object.keys(item)[0] === categoryName);
+    if (!categoryData) {
       throw new NotFoundException(`Category ${categoryName} not found`);
     }
+
+    const questionIds = categoryData[categoryName].questions.map(q => q.id);
 
     const rows = await this.userProfileRepository
       .createQueryBuilder('profile')
       .select('user.username', 'username')
       .addSelect('SUM(profile.score)', 'totalScore')
       .innerJoin('profile.user', 'user')
-      .innerJoin('profile.game', 'question')
-      .innerJoin('question.mainGame', 'category')
-      .where('category.id = :categoryId', { categoryId: category.id })
+      .where('profile.game_id IN (:...questionIds)', { questionIds })
       .groupBy('user.username')
       .orderBy('totalScore', 'DESC')
       .limit(50)

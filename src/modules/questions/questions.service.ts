@@ -1,55 +1,65 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { QuestionEntity } from './entities/question.entity';
-import { CategoryEntity } from '../categories/entities/category.entity';
-import { CreateQuestionDto } from './dto/create-question.dto';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+
+interface JsonQuestion {
+  id: number;
+  question: string;
+  answers: { text: string; isCorrect: boolean }[];
+  info: string;
+}
+
+interface JsonCategory {
+  [key: string]: {
+    category_name: string;
+    questions: JsonQuestion[];
+  };
+}
 
 @Injectable()
 export class QuestionsService {
-  constructor(
-    @InjectRepository(QuestionEntity)
-    private readonly questionRepository: Repository<QuestionEntity>,
-    @InjectRepository(CategoryEntity)
-    private readonly categoryRepository: Repository<CategoryEntity>,
-  ) {}
+  private data: JsonCategory[] = [];
 
-  async create(dto: CreateQuestionDto): Promise<QuestionEntity> {
-    const category = await this.categoryRepository.findOne({ where: { id: dto.categoryId } });
-    if (!category) {
-      throw new NotFoundException(`Category with id ${dto.categoryId} not found`);
-    }
-
-    const existingCount = await this.questionRepository.count({
-      where: { mainGame: { id: category.id } },
-    });
-
-    const question = this.questionRepository.create({
-      questionIndex: existingCount + 1,
-      question: dto.question,
-      answer1: dto.answer1,
-      answer2: dto.answer2,
-      answer3: dto.answer3,
-      answer4: dto.answer4,
-      status: dto.status ?? 'easy',
-      correctAnswer: dto.correctAnswer,
-      explanation: dto.explanation,
-      attachment: dto.attachment,
-      mainGame: category,
-    });
-
-    return this.questionRepository.save(question);
+  constructor() {
+    this.loadDataFromJson();
   }
 
-  async findByCategoryName(categoryName: string): Promise<QuestionEntity[]> {
-    const category = await this.categoryRepository.findOne({ where: { gameName: categoryName } });
-    if (!category) {
+  private loadDataFromJson() {
+    const filePath = join(process.cwd(), 'data.json');
+    if (!existsSync(filePath)) {
+      console.warn('data.json not found, questions will be empty');
+      return;
+    }
+
+    const raw = readFileSync(filePath, 'utf8');
+    this.data = JSON.parse(raw);
+  }
+
+  async findByCategoryName(categoryName: string) {
+    const categoryData = this.data.find(item => Object.keys(item)[0] === categoryName);
+    if (!categoryData) {
       throw new NotFoundException(`Category ${categoryName} not found`);
     }
 
-    return this.questionRepository.find({
-      where: { mainGame: { id: category.id } },
-      order: { questionIndex: 'ASC' },
-    });
+    const questions = categoryData[categoryName].questions;
+
+    return questions.map((q, index) => ({
+      id: q.id,
+      questionIndex: index + 1,
+      question: q.question,
+      answer1: q.answers[0]?.text || '',
+      answer2: q.answers[1]?.text || '',
+      answer3: q.answers[2]?.text || '',
+      answer4: q.answers[3]?.text || '',
+      status: 'easy' as 'easy' | 'medium' | 'hard',
+      correctAnswer: q.answers.findIndex(a => a.isCorrect) + 1 + '',
+      explanation: q.info,
+      attachment: null,
+    }));
+  }
+
+  async create(dto: any) {
+    // Not implemented for JSON-based approach
+    throw new Error('Create not supported with JSON data source');
   }
 }

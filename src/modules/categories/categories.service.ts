@@ -1,20 +1,47 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CategoryEntity } from './entities/category.entity';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+
+interface JsonCategory {
+  [key: string]: {
+    category_name: string;
+    questions: any[];
+  };
+}
 
 @Injectable()
 export class CategoriesService {
-  constructor(
-    @InjectRepository(CategoryEntity)
-    private readonly categoryRepository: Repository<CategoryEntity>,
-  ) {}
+  private categories: { id: number; gameName: string; gameImage: string }[] = [];
 
-  async findAll(): Promise<CategoryEntity[]> {
-    return this.categoryRepository.find();
+  constructor() {
+    this.loadCategoriesFromJson();
   }
 
-  async findByName(gameName: string): Promise<CategoryEntity | null> {
-    return this.categoryRepository.findOne({ where: { gameName } });
+  private loadCategoriesFromJson() {
+    const filePath = join(process.cwd(), 'data.json');
+    if (!existsSync(filePath)) {
+      console.warn('data.json not found, categories will be empty');
+      return;
+    }
+
+    const raw = readFileSync(filePath, 'utf8');
+    const data: JsonCategory[] = JSON.parse(raw);
+
+    this.categories = data.map((item, index) => {
+      const key = Object.keys(item)[0];
+      return {
+        id: index + 1,
+        gameName: key,
+        gameImage: '', // Default empty, can be updated if needed
+      };
+    });
+  }
+
+  async findAll() {
+    return this.categories;
+  }
+
+  async findByName(gameName: string) {
+    return this.categories.find(cat => cat.gameName === gameName) || null;
   }
 }

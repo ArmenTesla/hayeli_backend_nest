@@ -1,6 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { UserEntity } from '../../../common/entities/users.entity';
-import { QuestionEntity } from '../../game/entities/question.entity';
 
 @Entity('main_userprofile')
 export class UserProfileEntity {
@@ -11,9 +10,8 @@ export class UserProfileEntity {
   @JoinColumn({ name: 'user_id' })
   user!: UserEntity;
 
-  @ManyToOne(() => QuestionEntity, { onDelete: 'CASCADE', nullable: false })
-  @JoinColumn({ name: 'game_id' })
-  game!: QuestionEntity;
+  @Column({ type: 'int', nullable: false })
+  game_id!: number; // Changed from relation to QuestionEntity to simple ID
 
   @Column({ type: 'int', default: 0 })
   score!: number;
