@@ -1,7 +1,7 @@
 [
- {
-    "hay_es": {
-    "category_name": "Հայ Ես՞",
+  {
+    "game_name": "Հայ Ես՞",
+    "game_image": "assets/images/categories/hay_es.png",
     "questions": [
         {
           "id": 1,
@@ -677,5 +677,4 @@
       }
     ]
   }
- }
 ]

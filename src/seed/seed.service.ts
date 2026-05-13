@@ -50,80 +50,56 @@ export class SeedService implements OnModuleInit {
 
  private async importFromJson() {
     const filePath = join(process.cwd(), 'data.json');
-    if (!existsSync(filePath)) {
-      this.logger.warn(`Seed file not found at ${filePath}.`);
-      return;
-    }
+    if (!existsSync(filePath)) return;
 
     const raw = readFileSync(filePath, 'utf8');
-    let payload: any;
-
-    try {
-      payload = JSON.parse(raw);
-    } catch (error) {
-      this.logger.error('Failed to parse data.json', error as Error);
-      return;
-    }
+    const payload = JSON.parse(raw);
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      // Итерируемся по массиву объектов (у тебя там [{ "hay_es": {...} }])
       for (const item of payload) {
-        const keys = Object.keys(item);
-        const categoryKey = keys[0]; // Это будет "hay_es"
-        const categoryData = item[categoryKey];
+        // Вставляем категорию напрямую через QueryBuilder, чтобы обойти капризы Entity
+        const categoryResult = await queryRunner.manager
+          .createQueryBuilder()
+          .insert()
+          .into(CategoryEntity)
+          .values({
+            gameName: item.game_name,   // Если в Entity поле gameName
+            gameImage: item.game_image, // Если в Entity поле gameImage
+          } as any)
+          .execute();
 
-        if (!categoryData || !categoryData.category_name) {
-          this.logger.warn(`Skipping invalid item: ${JSON.stringify(item).substring(0, 50)}`);
-          continue;
+        const categoryId = categoryResult.identifiers[0].id;
+
+        for (const [index, q] of item.questions.entries()) {
+          await queryRunner.manager
+            .createQueryBuilder()
+            .insert()
+            .into(QuestionEntity)
+            .values({
+              questionIndex: index + 1,
+              question: q.question,
+              answer1: q.answers[0] || '',
+              answer2: q.answers[1] || '',
+              answer3: q.answers[2] || '',
+              answer4: q.answers[3] || '',
+              status: 'easy',
+              correctAnswer: (q.correctIndex + 1).toString(),
+              attachment: q.info || '',
+              mainGame: { id: categoryId }, // Привязка к созданной категории
+            } as any)
+            .execute();
         }
-
-        this.logger.log(`Processing category: ${categoryData.category_name}`);
-
-        // СОЗДАЕМ КАТЕГОРИЮ ЯВНО
-        const category = new CategoryEntity();
-        (category as any).game_name = categoryData.category_name;
-        (category as any).game_image = 'assets/images/categories/hay_es.png';
-
-        // Сохраняем категорию через менеджер транзакции
-        const savedCategory = await queryRunner.manager.save(CategoryEntity, category);
-
-        // СОЗДАЕМ ВОПРОСЫ
-        const questionsEntities: QuestionEntity[] = [];
-        
-        for (let i = 0; i < categoryData.questions.length; i++) {
-          const q = categoryData.questions[i];
-          const correctIndex = q.answers.findIndex((a: any) => a.isCorrect === true);
-
-          const question = new QuestionEntity();
-          question.questionIndex = i + 1;
-          question.question = q.question;
-          question.answer1 = q.answers[0]?.text || '';
-          question.answer2 = q.answers[1]?.text || '';
-          question.answer3 = q.answers[2]?.text || '';
-          question.answer4 = q.answers[3]?.text || '';
-          question.status = 'easy';
-          question.correctAnswer = (correctIndex + 1).toString();
-          question.attachment = q.info || '';
-          question.mainGame = savedCategory;
-
-          questionsEntities.push(question);
-        }
-
-        // Сохраняем пачку вопросов
-        await queryRunner.manager.save(QuestionEntity, questionsEntities);
-        
-        this.logger.log(`Successfully imported "${categoryData.category_name}"`);
       }
 
       await queryRunner.commitTransaction();
-      this.logger.log('Seed import completed successfully!');
+      this.logger.log('Seed SUCCESS! База наполнена.');
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Seed import failed. Rolling back.', error);
+      this.logger.error('Seed FAILED. Error details:', error);
     } finally {
       await queryRunner.release();
     }
