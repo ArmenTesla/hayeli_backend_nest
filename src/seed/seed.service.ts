@@ -19,24 +19,30 @@ export class SeedService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Проверяем наличие данных, чтобы не дублировать их при каждом перезапуске
-    const count = await this.categoryRepository.count();
-    if (count > 0) {
-      this.logger.log('Database already seeded, skipping import.');
-      return;
-    }
+    const languages = ['am', 'ru', 'en'];
+    
+    for (const lang of languages) {
+      // Проверяем наличие категорий именно для текущего языка
+      const count = await this.categoryRepository.count({
+        where: { language: lang }
+      });
 
-    await this.importFromJson();
+      if (count > 0) {
+        this.logger.log(`[${lang.toUpperCase()}] Данные уже есть в базе, пропускаю импорт.`);
+        continue;
+      }
+
+      this.logger.log(`[${lang.toUpperCase()}] Данные не найдены, начинаю импорт...`);
+      await this.importForLanguage(lang);
+    }
   }
 
- private async importFromJson() {
-  const languages = ['am', 'ru', 'en'];
-  
-  for (const lang of languages) {
+  private async importForLanguage(lang: string) {
     const filePath = join(process.cwd(), `data_${lang}.json`);
+    
     if (!existsSync(filePath)) {
       this.logger.warn(`Файл не найден: ${filePath}`);
-      continue;
+      return;
     }
 
     const raw = readFileSync(filePath, 'utf8');
@@ -46,7 +52,7 @@ export class SeedService implements OnModuleInit {
       payload = JSON.parse(raw);
     } catch (e) {
       this.logger.error(`Ошибка парсинга файла ${lang}:`, e);
-      continue;
+      return;
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -55,9 +61,6 @@ export class SeedService implements OnModuleInit {
 
     try {
       for (const categoryData of payload) {
-        // Теперь мы берем данные напрямую из объекта, так как структуры hay_es: {} больше нет
-        this.logger.log(`Импорт категории: ${categoryData.game_name} [${lang}]`);
-
         // 1. Вставляем категорию
         const categoryResult = await queryRunner.manager
           .createQueryBuilder()
@@ -74,40 +77,43 @@ export class SeedService implements OnModuleInit {
 
         // 2. Вставляем вопросы этой категории
         if (categoryData.questions && Array.isArray(categoryData.questions)) {
-          for (const [index, q] of categoryData.questions.entries()) {
+          const questionsToInsert = categoryData.questions.map((q: any, index: number) => {
             const answerTexts = q.answers.map((a: any) => a.text || '');
             const correctIdx = q.answers.findIndex((a: any) => a.isCorrect === true);
             const finalCorrectAnswer = correctIdx !== -1 ? (correctIdx + 1).toString() : "1";
 
-            await queryRunner.manager
-              .createQueryBuilder()
-              .insert()
-              .into(QuestionEntity)
-              .values({
-                questionIndex: index + 1,
-                question: q.question,
-                answer1: answerTexts[0] || '',
-                answer2: answerTexts[1] || '',
-                answer3: answerTexts[2] || '',
-                answer4: answerTexts[3] || '',
-                status: 'easy',
-                correctAnswer: finalCorrectAnswer,
-                attachment: q.info || '', 
-                language: lang,
-                mainGame: { id: categoryId },
-              } as any)
-              .execute();
-          }
+            return {
+              questionIndex: index + 1,
+              question: q.question,
+              answer1: answerTexts[0] || '',
+              answer2: answerTexts[1] || '',
+              answer3: answerTexts[2] || '',
+              answer4: answerTexts[3] || '',
+              status: 'easy',
+              correctAnswer: finalCorrectAnswer,
+              attachment: q.info || '', 
+              language: lang,
+              mainGame: { id: categoryId },
+            };
+          });
+
+          // Пакетная вставка вопросов для ускорения процесса
+          await queryRunner.manager
+            .createQueryBuilder()
+            .insert()
+            .into(QuestionEntity)
+            .values(questionsToInsert as any)
+            .execute();
         }
       }
+
       await queryRunner.commitTransaction();
-      this.logger.log(`✅ Язык ${lang} успешно импортирован!`);
+      this.logger.log(`✅ Язык [${lang}] успешно импортирован!`);
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(`❌ Ошибка импорта языка ${lang}:`, err);
+      this.logger.error(`❌ Ошибка во время импорта языка [${lang}]:`, err);
     } finally {
       await queryRunner.release();
     }
   }
-}
 }
